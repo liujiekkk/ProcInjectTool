@@ -1,9 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "versiondialog.h"
+#include "processlistdialog.h"
+
 #include <QDebug>
 #include <QCloseEvent>
 #include <QMessageBox>
+
 
 #define MAINWINDOW_WIDTH 600
 #define MAINWINDOW_HEIGHT 400
@@ -19,10 +22,12 @@ MainWindow::MainWindow(QWidget *parent)
     // 设置主窗口标题栏
     setWindowTitle("ProcInjectTool");
     // 设置窗口不能改变大小.
-    setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
+    //setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
 
     // connect(ui->actVersion, SIGNAL(triggered(bool)), this, SLOT(showVersionDialog(bool)));
     connect(ui->actVersion, &QAction::triggered, this, &MainWindow::showVersionDialog);
+
+    connect(ui->btnProcessScan, &QPushButton::clicked, this, &MainWindow::showProcListWindow);
 }
 
 MainWindow::~MainWindow()
@@ -51,4 +56,11 @@ void MainWindow::showVersionDialog(bool checked)
     Q_UNUSED(checked);
     pDialog = new VersionDialog(this);
     pDialog->exec();
+}
+
+void MainWindow::showProcListWindow(bool checked)
+{
+    Q_UNUSED(checked);
+    pProcListDlg = new ProcessListDialog(this);
+    pProcListDlg->exec();
 }

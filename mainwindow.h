@@ -10,6 +10,8 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class VersionDialog;
+class ProcessListDialog;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -26,9 +28,13 @@ protected slots:
 
     void showVersionDialog(bool);
 
+    void showProcListWindow(bool);
+
 private:
     Ui::MainWindow *ui;
 
     VersionDialog *pDialog;
+
+    ProcessListDialog *pProcListDlg;
 };
 #endif // MAINWINDOW_H
