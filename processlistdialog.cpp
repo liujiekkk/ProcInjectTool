@@ -1,9 +1,13 @@
 #include "processlistdialog.h"
 #include "ui_processlistdialog.h"
-#include "processmanager.h"
 
 #include <QMessageBox>
 #include <QStandardItemModel>
+#include <QStandardItem>
+
+#include "processmanager.h"
+
+// extern TableViewHeadConfig procTableViewConfig[], dllTableViewConfig[];
 
 ProcessListDialog::ProcessListDialog(QWidget *parent)
     : QDialog(parent)
@@ -37,30 +41,44 @@ bool ProcessListDialog::initProcessList(QTableView *procView, QTableView *dllVie
 {
     // 初始化进程列表表头
     QStandardItemModel *pProcModel = dynamic_cast<QStandardItemModel*>(procView->model());
-    pProcModel->setColumnCount(4);
-    pProcModel->setHeaderData(0, Qt::Horizontal, "PID");
-    pProcModel->setHeaderData(1, Qt::Horizontal, "Name");
-    pProcModel->setHeaderData(2, Qt::Horizontal, "Window");
-    pProcModel->setHeaderData(3, Qt::Horizontal, "Path");
-    procView->setShowGrid(true); // 设置显示表格
-    procView->setColumnWidth(0, 40);
-    procView->setColumnWidth(1, 160);
-    procView->setColumnWidth(2, 100);
-    procView->setColumnWidth(3, 280);
-
+    // 设置表头的列数为配置数组的长度.
+    pProcModel->setColumnCount(sizeof(procTableViewConfig) / sizeof(procTableViewConfig[0]));
+    // 隐藏行表头.
+    procView->verticalHeader()->setHidden(true);
+    for (auto config : procTableViewConfig) {
+        pProcModel->setHeaderData(config.index, Qt::Horizontal, QString(config.title));
+        procView->setColumnWidth(config.index, config.width);
+    }
 
     // 初始化DLL列表表头
     QStandardItemModel* pDllModel = dynamic_cast<QStandardItemModel*>(dllView->model());
-    pDllModel->setColumnCount(3);
-    pDllModel->setHeaderData(0, Qt::Horizontal, "Module");
-    pDllModel->setHeaderData(1, Qt::Horizontal, "AddrBase");
-    pDllModel->setHeaderData(2, Qt::Horizontal, "Size");
-    dllView->setShowGrid(true); // 设置显示表格
-    dllView->setColumnWidth(0, 450);
-    dllView->setColumnWidth(1, 80);
-    dllView->setColumnWidth(2, 50);
+    pDllModel->setColumnCount(sizeof(dllTableViewConfig) / sizeof(dllTableViewConfig[0]));
+    // 隐藏行表头.
+    dllView->verticalHeader()->setHidden(true);
+    for (auto config : dllTableViewConfig) {
+        pDllModel->setHeaderData(config.index, Qt::Horizontal, QString(config.title));
+        dllView->setColumnWidth(config.index, config.width);
+    }
+
 
     ProcessManager procManager;
+    PIDLIST pidList;
+    try {
+        // 获取进程PID列表.
+        procManager.getAllProcList(pidList);
+    } catch (const PMException& e) {
+        qDebug() << e.msg;
+    }
+    // 将进程相关信息放入tableView 中.
+    for (int i = 0; i < static_cast<int>(pidList.size()); i++) {
+        // 设置进程ID到第一列
+        pProcModel->setItem(i, 0, new QStandardItem(QString::number(pidList[i].pid)));
+        // 父进程ID.
+        pProcModel->setItem(i, 1, new QStandardItem(QString::number(pidList[i].parentPid)));
+        // 设置进程名称到第二列
+        pProcModel->setItem(i, 2, new QStandardItem(QString::fromWCharArray(pidList[i].name, wcslen(pidList[i].name))));
+
+    }
 
     return true;
 }

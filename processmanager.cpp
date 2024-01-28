@@ -1,11 +1,12 @@
 #include "processmanager.h"
-#include "common.h"
-#include "log.h"
+#include <QDebug>
 
 #include <windows.h>
 #include <TlHelp32.h>
-#include <QMap>
-#include <QDebug>
+
+#include "common.h"
+#include "log.h"
+
 
 ProcessManager::ProcessManager(QObject *parent)
     : QObject{parent}
@@ -24,26 +25,32 @@ ProcessManager::~ProcessManager()
     // 释放日志资源.
     delete m_pLog;
     m_pLog = nullptr;
-
-    // 释放进程ID列表资源
-    delete m_pidList;
-    m_pidList = nullptr;
 }
 
-PIDLIST &ProcessManager::getAllProcList()
+void ProcessManager::getAllProcList(PIDLIST &plist)
 {
-    // 如果已经存在进程ID数据，释放重新获取.
-    if (m_pidList) {
-        delete m_pidList;
-    }
-    // 实例化 PID list.
-    m_pidList = new PIDLIST;
     // 获取系统进程快照.
     HANDLE hProcessSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     // 如果句柄获取失败，错误提示.
     if (INVALID_HANDLE_VALUE == hProcessSnap) {
-
+        m_pLog->error("Process snapshot handle is invalid.");
+        throw PMException {1, "Process snapshot handle is invalid."};
     }
-    return *m_pidList;
+
+    PROCESSENTRY32 pe;
+
+    pe.dwSize = sizeof(PROCESSENTRY32);
+
+    if (!Process32First(hProcessSnap,&pe)) {
+        CloseHandle(hProcessSnap);
+        return;
+    }
+    do {
+        // 将获取到的 pid 封装.
+        plist.push_back(PIDLIST_ELEM {pe.th32ProcessID, pe.th32ParentProcessID, pe.szExeFile});
+
+    } while (Process32Next(hProcessSnap, &pe));
+
+    CloseHandle(hProcessSnap);
 }
 

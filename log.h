@@ -33,13 +33,13 @@ public:
 
     Log *setPlaceHolder(string str);
 
-    void debug(string s, initializer_list<const string> args);
+    void debug(string s, initializer_list<const string> args = {});
 
-    void info(string s, initializer_list<const string> args);
+    void info(string s, initializer_list<const string> args = {});
 
-    void warning(string s, initializer_list<const string> args);
+    void warning(string s, initializer_list<const string> args = {});
 
-    void error(string s, initializer_list<const string> args);
+    void error(string s, initializer_list<const string> args = {});
 
 protected:
 
