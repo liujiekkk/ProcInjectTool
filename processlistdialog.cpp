@@ -23,7 +23,14 @@ ProcessListDialog::ProcessListDialog(QWidget *parent)
         ui->lineEditorFilterByProcName,
         SIGNAL(textChanged(QString)),
         this,
-        SLOT(slotFilterByProceName(QString))
+        SLOT(onFilterByProceName(QString))
+    );
+    // 点击进程触发信号，加载进程模块.
+    connect(
+        ui->procTableView,
+        SIGNAL(activated(QModelIndex)),
+        this,
+        SLOT(onActivated(QModelIndex))
     );
 
     // 初始化表格过滤代理模型.
@@ -38,9 +45,7 @@ ProcessListDialog::ProcessListDialog(QWidget *parent)
     pDllTableModel = new QStandardItemModel(this);
     ui->dllTableView->setModel(pDllTableModel);
 
-    if (!initProcessList(ui->procTableView, ui->dllTableView)) {
-        QMessageBox::warning(this, "警告", "加载进程列表异常", QMessageBox::Ok);
-    }
+    initProcessList(ui->procTableView, ui->dllTableView);
 }
 
 ProcessListDialog::~ProcessListDialog()
@@ -54,7 +59,15 @@ ProcessListDialog::~ProcessListDialog()
     delete ui;
 }
 
-bool ProcessListDialog::initProcessList(QTableView *procView, QTableView *dllView)
+void ProcessListDialog::initProcessList(QTableView *procView, QTableView *dllView)
+{
+    // 加载进程列表.
+    loadProcModelData(procView);
+    // 加载 dll 模块列表.
+    loadDllModelData(dllView, 0);
+}
+
+void ProcessListDialog::initProcTableViewHead(QTableView *procView)
 {
     // 初始化进程列表表头
     QStandardItemModel *pProcModel = dynamic_cast<QStandardItemModel*>(procView->model());
@@ -68,26 +81,23 @@ bool ProcessListDialog::initProcessList(QTableView *procView, QTableView *dllVie
     procView->setSortingEnabled(true);
     // 单击选中行
     procView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // 设置只能选中单行.
+    procView->setSelectionMode(QAbstractItemView::SingleSelection);
     for (auto config : procTableViewConfig) {
         pProcModel->setHeaderData(config.index, Qt::Horizontal, QString(config.title));
         procView->setColumnWidth(config.index, config.width);
     }
     // 设置表格列宽度自适应.
     // procView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+}
 
-    // 初始化DLL列表表头
-    QStandardItemModel* pDllModel = dynamic_cast<QStandardItemModel*>(dllView->model());
-    pDllModel->setColumnCount(sizeof(dllTableViewConfig) / sizeof(dllTableViewConfig[0]));
-    // 隐藏行表头.
-    dllView->verticalHeader()->setHidden(true);
-    // 设置表格不可编辑.
-    dllView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    // 单击选中行
-    dllView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    for (auto config : dllTableViewConfig) {
-        pDllModel->setHeaderData(config.index, Qt::Horizontal, QString(config.title));
-        dllView->setColumnWidth(config.index, config.width);
-    }
+void ProcessListDialog::loadProcModelData(QTableView *view)
+{
+    auto pProcModel = dynamic_cast<QStandardItemModel*>(view->model());
+    // 清理表格数据.
+    pProcModel->clear();
+
+    initProcTableViewHead(view);
 
     ProcessManager procManager;
     PIDLIST pidList;
@@ -107,11 +117,55 @@ bool ProcessListDialog::initProcessList(QTableView *procView, QTableView *dllVie
         pProcModel->setItem(i, 2, new QStandardItem(QString::fromWCharArray(pidList[i].name, wcslen(pidList[i].name))));
 
     }
-
-    return true;
 }
 
-void ProcessListDialog::slotFilterByProceName(const QString &text)
+void ProcessListDialog::initDllTableViewHead(QTableView *dllView)
+{
+    // 初始化DLL列表表头
+    QStandardItemModel* pDllModel = dynamic_cast<QStandardItemModel*>(dllView->model());
+    pDllModel->setColumnCount(sizeof(dllTableViewConfig) / sizeof(dllTableViewConfig[0]));
+    // 隐藏行表头.
+    dllView->verticalHeader()->setHidden(true);
+    // 设置表格不可编辑.
+    dllView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // 单击选中行
+    dllView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // 设置只能选中单行模式.
+    dllView->setSelectionMode(QAbstractItemView::SingleSelection);
+    for (auto config : dllTableViewConfig) {
+        pDllModel->setHeaderData(config.index, Qt::Horizontal, QString(config.title));
+        dllView->setColumnWidth(config.index, config.width);
+    }
+}
+
+void ProcessListDialog::loadDllModelData(QTableView *view, uint64_t pid)
+{
+    QStandardItemModel *pModel = dynamic_cast<QStandardItemModel*>(view->model());
+    // 清理 model 中数据.
+    pModel->clear();
+    // 重新初始化表头.
+    initDllTableViewHead(view);
+    if (pid <= 0) {
+        return;
+    }
+    ProcessManager pmg;
+    ModuleEntryList list;
+    try {
+        list = pmg.getModuleList(pid);
+    } catch (const PMException &e) {
+        qDebug() << e.msg;
+        return;
+    }
+    // 将进程相关信息放入tableView 中.
+    for (int i = 0; i < static_cast<int>(list.size()); i++) {
+        // 设置 dll 模块第一列
+        pModel->setItem(i, 0, new QStandardItem(QString::fromStdWString(list[i].szExePath)));
+        // 设置进程名称到第二列
+        // pDllTableModel->setItem(i, 1, new QStandardItem(QString::fromStdWString(list[i].szModule)));
+    }
+}
+
+void ProcessListDialog::onFilterByProceName(const QString &text)
 {
     pSortFilterProxyModel->setSourceModel(pProcTableModel);
     // 对表格的所有列数据进行过滤.
@@ -128,4 +182,17 @@ void ProcessListDialog::slotFilterByProceName(const QString &text)
         pSortFilterProxyModel->setFilterRegularExpression(reg);
     }
     ui->procTableView->setModel(pSortFilterProxyModel);
+}
+
+void ProcessListDialog::onActivated(const QModelIndex &index)
+{
+    // 获取当前选中的行的进程ID.注意，model 在筛选进程名的时候会换成 QSortFilterProxyModel.
+    QAbstractItemModel *model = pProcTableModel;
+    if (pSortFilterProxyModel->sourceModel()) {
+        model = pSortFilterProxyModel;
+    }
+    QModelIndex newIndex = model->index(index.row(), 0);
+    // 获取当前选中的进程ID.
+    uint64_t pid = newIndex.data().toULongLong();
+    loadDllModelData(ui->dllTableView, pid);
 }

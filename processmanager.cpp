@@ -1,8 +1,9 @@
 #include "processmanager.h"
 #include <QDebug>
 
-#include <windows.h>
+#include <Windows.h>
 #include <TlHelp32.h>
+#include <sstream>
 
 #include "common.h"
 #include "log.h"
@@ -52,5 +53,32 @@ void ProcessManager::getAllProcList(PIDLIST &plist)
     } while (Process32Next(hProcessSnap, &pe));
 
     CloseHandle(hProcessSnap);
+}
+
+ModuleEntryList ProcessManager::getModuleList(uint64_t pid)
+{
+    // 获取当前进程的快照.
+    HANDLE hModuleSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
+    if (hModuleSnap == INVALID_HANDLE_VALUE) {
+        m_pLog->error("Process [%] get snapshot failed.", {std::to_string(pid)});
+        std::stringstream ss;
+        ss << "Process [" << pid << "] get snapshot failed.";
+        throw PMException {2, ss.str().c_str()};
+    }
+
+    MODULEENTRY32 me32;
+    me32.dwSize = sizeof(MODULEENTRY32);
+
+    ModuleEntryList list;
+
+    if (!Module32First(hModuleSnap, &me32)) {
+        CloseHandle(hModuleSnap);
+    }
+    do {
+        list.push_back(ModuleEntryElement{me32.th32ProcessID, me32.szModule, me32.szExePath});
+
+    } while(Module32Next(hModuleSnap, &me32));
+    CloseHandle(hModuleSnap);
+    return list;
 }
 

@@ -52,9 +52,29 @@ private:
     }
 } PIDLIST_ELEM;
 
-typedef std::vector<PIDLIST_ELEM> PIDLIST, *LPPIDLIST;
+class ModuleEntryElement
+{
+public:
 
-class exception;
+    std::uint64_t processId;
+
+    std::wstring szModule;
+
+    std::wstring szExePath;
+
+public:
+
+    ModuleEntryElement(): processId(0), szModule(L""), szExePath(L"")
+    {}
+
+    ModuleEntryElement(uint64_t processId, std::wstring szModule, std::wstring szExePath)
+        :processId(processId), szModule(szModule), szExePath(szExePath)
+    {}
+};
+
+typedef std::vector<ModuleEntryElement> ModuleEntryList;
+
+typedef std::vector<PIDLIST_ELEM> PIDLIST, *LPPIDLIST;
 
 // 定义 ProcessManager 异常对象 PMException
 typedef struct {
@@ -71,6 +91,8 @@ public:
     ~ProcessManager();
 
     void getAllProcList(PIDLIST&);
+
+    ModuleEntryList getModuleList(uint64_t pid);
 
 signals:
 

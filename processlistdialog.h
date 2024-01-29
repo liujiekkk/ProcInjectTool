@@ -27,11 +27,20 @@ public:
 
 public slots:
 
-    void slotFilterByProceName(const QString &text);
+    void onFilterByProceName(const QString &text);
+    void onActivated(const QModelIndex&);
 
 protected:
 
-    bool initProcessList(QTableView *procView, QTableView *dllView);
+    void initProcessList(QTableView *procView, QTableView *dllView);
+
+    void initProcTableViewHead(QTableView *procView);
+
+    void loadProcModelData(QTableView *);
+
+    void initDllTableViewHead(QTableView *dllView);
+
+    void loadDllModelData(QTableView *, uint64_t);
 
 private:
 
