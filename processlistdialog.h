@@ -15,6 +15,7 @@ class ProcessListDialog;
 
 class QStandardItemModel;
 class QTableView;
+class QSortFilterProxyModel;
 
 class ProcessListDialog : public QDialog
 {
@@ -24,16 +25,24 @@ public:
     explicit ProcessListDialog(QWidget *parent = nullptr);
     ~ProcessListDialog();
 
+public slots:
+
+    void slotFilterByProceName(const QString &text);
+
 protected:
 
     bool initProcessList(QTableView *procView, QTableView *dllView);
 
 private:
+
     Ui::ProcessListDialog *ui;
 
     QStandardItemModel *pProcTableModel = nullptr;
 
     QStandardItemModel *pDllTableModel = nullptr;
+
+    QSortFilterProxyModel *pSortFilterProxyModel = nullptr;
+
 };
 
 // 定义进程列表表头配置数据.
