@@ -9,27 +9,41 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    log.cpp \
+    basetable.cpp \
+    dlg_dlllist.cpp \
+    dllmoduletable.cpp \
+    injector.cpp \
     main.cpp \
     mainwindow.cpp \
-    processlistdialog.cpp \
     processmanager.cpp \
-    versiondialog.cpp
+    processtable.cpp \
+    versiondialog.cpp \
+    windowselector.cpp
 
 HEADERS += \
+    basetable.h \
     common.h \
-    log.h \
+    dlg_dlllist.h \
+    dllmoduletable.h \
+    injector.h \
     mainwindow.h \
-    processlistdialog.h \
     processmanager.h \
-    versiondialog.h
+    processtable.h \
+    versiondialog.h \
+    windowselector.h
+
+LIBS += \
+    -luser32
 
 FORMS += \
+    dlg_dlllist.ui \
     mainwindow.ui \
-    processlistdialog.ui \
     versiondialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    icons.qrc

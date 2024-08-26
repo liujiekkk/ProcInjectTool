@@ -1,104 +1,36 @@
 #ifndef PROCESSMANAGER_H
 #define PROCESSMANAGER_H
 
-#include <QObject>
+#include <string>
+#include <vector>
 
-class Log;
+typedef unsigned long pid_t;
 
-typedef struct node{
+typedef struct _ProcessData {
+    pid_t pid;
+    unsigned parentId;
+    std::wstring name;
+} PROCESSDATA, *PPROCESSDATA;
 
-    wchar_t *name;
-    uint64_t pid;
-    uint64_t parentPid;
+typedef std::vector<PROCESSDATA> PROCESSLIST;
 
-    node():name(nullptr), pid(0), parentPid(0) {}
-    node(uint64_t pid, uint64_t parentPid, wchar_t *name): pid(pid), parentPid(parentPid)
-    {
-        this->name = copy(name);
-    }
-    explicit node(const node &t)
-    {
-        pid = t.pid;
-        parentPid = t.parentPid;
-        name = copy(t.name);
-    }
-    node& operator=(const node &t)
-    {
-        if (name != nullptr) {
-            delete[] name;
-            name = nullptr;
-        }
-        name = copy(t.name);
-        pid = t.pid;
-        parentPid = t.parentPid;
-        return *this;
-    }
-    ~node()
-    {
-        if (name != nullptr)
-            delete[] name;
-    }
-private:
-
-    wchar_t *copy(const wchar_t *pSrc)
-    {
-        if (pSrc == nullptr) {
-            return nullptr;
-        }
-        size_t len = (wcslen(pSrc) + 1) * sizeof(wchar_t);
-        wchar_t *pDst  = new wchar_t[len];
-        memcpy(pDst, pSrc, len);
-        return pDst;
-    }
-} PIDLIST_ELEM;
-
-class ModuleEntryElement
+class ProcessManager
 {
-public:
-
-    std::uint64_t processId;
-
-    std::wstring szModule;
-
-    std::wstring szExePath;
 
 public:
 
-    ModuleEntryElement(): processId(0), szModule(L""), szExePath(L"")
-    {}
-
-    ModuleEntryElement(uint64_t processId, std::wstring szModule, std::wstring szExePath)
-        :processId(processId), szModule(szModule), szExePath(szExePath)
-    {}
-};
-
-typedef std::vector<ModuleEntryElement> ModuleEntryList;
-
-typedef std::vector<PIDLIST_ELEM> PIDLIST, *LPPIDLIST;
-
-// 定义 ProcessManager 异常对象 PMException
-typedef struct {
-    unsigned short code;
-    const char * msg;
-} PMException;
-
-class ProcessManager : public QObject
-{
-    Q_OBJECT
-public:
-    explicit ProcessManager(QObject *parent = nullptr);
+    explicit ProcessManager();
 
     ~ProcessManager();
 
-    void getAllProcList(PIDLIST&);
+    // 获取进程信息列表.
+    static bool getAllProcessList(PROCESSLIST *plist);
 
-    ModuleEntryList getModuleList(uint64_t pid);
-
-signals:
+    // 获取指定进程的dll打开列表
+    static bool getProcessModuleList(pid_t pid, std::vector<std::wstring> *pVec);
 
 private:
 
-    Log *m_pLog = nullptr;
 };
 
 #endif // PROCESSMANAGER_H

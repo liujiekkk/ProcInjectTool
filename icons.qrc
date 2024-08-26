@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/aim.png</file>
+        <file>assets/main.png</file>
+    </qresource>
+</RCC>

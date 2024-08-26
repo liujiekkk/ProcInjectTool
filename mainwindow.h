@@ -2,39 +2,48 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSortFilterProxyModel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 QT_END_NAMESPACE
 
 class VersionDialog;
-class ProcessListDialog;
+class DlgDllList;
+
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
+
     MainWindow(QWidget *parent = nullptr);
+
     ~MainWindow();
-
-protected:
-
-    virtual void closeEvent(QCloseEvent*);
 
 protected slots:
 
     void showVersionDialog(bool);
 
-    void showProcListWindow(bool);
+    void showDlgDllList(unsigned);
+
+    void slotInitProcList();
+
+protected:
+
+    void closeEvent(QCloseEvent*);
 
 private:
+
     Ui::MainWindow *ui;
 
-    VersionDialog *pDialog;
+    VersionDialog *m_pDialog;
 
-    ProcessListDialog *pProcListDlg;
+    DlgDllList *m_pProcListDlg;
+
 };
+
 #endif // MAINWINDOW_H
