@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     basetable.cpp \
     dlg_dlllist.cpp \
+    dlgwintool.cpp \
     dllmoduletable.cpp \
     injector.cpp \
     main.cpp \
@@ -24,6 +25,7 @@ HEADERS += \
     basetable.h \
     common.h \
     dlg_dlllist.h \
+    dlgwintool.h \
     dllmoduletable.h \
     injector.h \
     mainwindow.h \
@@ -37,6 +39,7 @@ LIBS += \
 
 FORMS += \
     dlg_dlllist.ui \
+    dlgwintool.ui \
     mainwindow.ui \
     versiondialog.ui
 

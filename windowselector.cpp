@@ -6,7 +6,7 @@
 WindowSelector::WindowSelector(QWidget* parent): QDialog::QDialog(parent)
 {
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool);
-    setFixedSize(21, 21);
+    setFixedSize(30, 30);
     setAttribute(Qt::WA_TranslucentBackground);
 }
 

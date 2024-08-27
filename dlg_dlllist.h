@@ -6,12 +6,6 @@
 
 #include "processmanager.h"
 
-struct TableViewHeadConfig {
-    char *title = nullptr;
-    int index = 0;
-    int width = 0;
-};
-
 namespace Ui {
     class DlgDllList;
 }
@@ -35,11 +29,7 @@ public:
 
 protected:
 
-    void mouseReleaseEvent(QMouseEvent*) override;
 
-    void mouseMoveEvent(QMouseEvent*) override;
-
-    void mousePressEvent(QMouseEvent*) override;
 
     // 重写关闭事件.
     void closeEvent(QCloseEvent*) override; 
@@ -55,8 +45,6 @@ protected slots:
 private:
 
     Ui::DlgDllList *ui;
-
-    QLabel *windowSelector = nullptr;
 
     // 文件选取路径
     QString m_path;

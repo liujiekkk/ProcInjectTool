@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "versiondialog.h"
 #include "dlg_dlllist.h"
+#include "dlgwintool.h"
 
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -11,7 +12,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), m_pDialog(nullptr), m_pProcListDlg(nullptr)
+    , ui(new Ui::MainWindow), m_pDialog(nullptr), m_pProcListDlg(nullptr), m_dlgWinTool(nullptr)
 {
     ui->setupUi(this);
     // 设置窗口图标.
@@ -35,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 设置进程数据，为第一次显示做准备.
     slotInitProcList();
+    // 状态栏
+    ui->statusbar->showMessage("进程加载完成", 2000);
 }
 
 MainWindow::~MainWindow()
@@ -90,3 +93,12 @@ void MainWindow::slotInitProcList()
     ProcessManager::getAllProcessList(plist.get());
     ui->processTableView->setData(plist);
 }
+
+void MainWindow::on_actWinTool_triggered()
+{
+    if (!m_dlgWinTool) {
+        m_dlgWinTool = new DlgWinTool(this);
+    }
+    m_dlgWinTool->exec();
+}
+

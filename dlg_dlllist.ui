@@ -30,37 +30,15 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QLabel" name="selectWindow">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>21</width>
-          <height>21</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>在此处点击</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="text">
-         <string>TextLabel</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QLineEdit" name="lineEditorFilterByProcName">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
          <string/>
         </property>
         <property name="placeholderText">
-         <string>&lt;通过进程名称筛选&gt;</string>
+         <string>&lt;通过DLL名称筛选&gt;</string>
         </property>
        </widget>
       </item>

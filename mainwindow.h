@@ -12,6 +12,7 @@ QT_END_NAMESPACE
 
 class VersionDialog;
 class DlgDllList;
+class DlgWinTool;
 
 
 class MainWindow : public QMainWindow
@@ -36,6 +37,9 @@ protected:
 
     void closeEvent(QCloseEvent*);
 
+private slots:
+    void on_actWinTool_triggered();
+
 private:
 
     Ui::MainWindow *ui;
@@ -43,6 +47,8 @@ private:
     VersionDialog *m_pDialog;
 
     DlgDllList *m_pProcListDlg;
+
+    DlgWinTool *m_dlgWinTool;
 
 };
 

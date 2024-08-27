@@ -13,11 +13,7 @@
 #include <memory>
 #include <vector>
 
-#include "windowselector.h"
 #include "injector.h"
-
-// 靶子窗口指针.
-QDialog* pTargetWindow = nullptr;
 
 DlgDllList::DlgDllList(pid_t pid, QWidget *parent)
     : QDialog(parent)
@@ -26,11 +22,6 @@ DlgDllList::DlgDllList(pid_t pid, QWidget *parent)
     ui->setupUi(this);
     setWindowTitle("进程列表");
     setFixedWidth(600);
-
-    // 初始化选择窗口按钮
-    ui->selectWindow->setPixmap(QPixmap(":/assets/aim.png"));
-    ui->selectWindow->setScaledContents(true);
-    ui->selectWindow->setToolTip(tr("拖动到目标窗口"));
 
     // 连接进程名称过滤框信号.
     connect(
@@ -79,82 +70,6 @@ void DlgDllList::refresh()
     slotInitList();
     // 刷新列表
     ui->dllTableView->process();
-}
-
-void DlgDllList::mouseReleaseEvent(QMouseEvent *)
-{
-    if (!pTargetWindow) {
-        return;
-    }
-    pTargetWindow->hide();
-    pTargetWindow->deleteLater();
-    pTargetWindow = nullptr;
-    // 获取当前所在窗口句柄.
-    POINT ptCursor;
-    GetCursorPos(&ptCursor);
-    // 获取当前鼠标箭头所在的顶层窗口.
-    HWND hWnd = WindowFromPoint(ptCursor);
-    if (hWnd != 0) {
-        // 获取窗口所在进程
-        DWORD processId = 0;
-        ::GetWindowThreadProcessId(hWnd, &processId);
-        //获取窗口标题
-        TCHAR szTitle[MAX_PATH];
-        GetWindowText(hWnd, szTitle, MAX_PATH);
-        //获取窗口类名
-        TCHAR szClass[MAX_PATH];
-        GetClassName(hWnd, szClass, MAX_PATH);
-        //获取窗口样式
-        LONG style = GetWindowLong(hWnd, GWL_STYLE);
-        //获取窗口矩形
-        RECT rect;
-        GetWindowRect(hWnd, &rect);
-        QRect window_rect(rect.left, rect.top, rect.right, rect.bottom);
-        /*
-        QString windowsHwnd = QString("%1").arg((quintptr)hWnd, QT_POINTER_SIZE, 16, QLatin1Char('0'));
-        QString windowsTitle = QString::fromWCharArray(szTitle);
-        QString windowsClass = QString::fromWCharArray(szClass);
-        QString windowsStyle = QString("%1").arg(style, QT_POINTER_SIZE, 16, QChar('0'));
-        QString windowsRect = QString("(%1,%2)-(%3,%4) %5×%6")
-                                  .arg(window_rect.topLeft().x())
-                                  .arg(window_rect.topLeft().y())
-                                  .arg(window_rect.bottomRight().x())
-                                  .arg(window_rect.bottomRight().y())
-                                  .arg(window_rect.width())
-                                  .arg(window_rect.height());
-        qDebug() << "processid:" << processId;
-        qDebug() << "windowHwnd:" << windowsHwnd;
-        qDebug() << "windowsTitle:" << windowsTitle;
-        qDebug() << "windowsClass:" << windowsClass;
-        qDebug() << "windowsStyle:" << windowsStyle;
-        qDebug() << "windowsRect:" << windowsRect;
-        */
-    }
-    // qDebug() << hWnd << "x:" << ptCursor.x << "y:" << ptCursor.y;
-}
-
-void DlgDllList::mouseMoveEvent(QMouseEvent *)
-{
-    if (pTargetWindow) {
-        // 鼠标移动时候自动移动靶子窗口.
-        pTargetWindow->move(
-            QCursor::pos().x() - pTargetWindow->width() / 2,
-            QCursor::pos().y() - pTargetWindow->height() / 2);
-    }
-}
-
-void DlgDllList::mousePressEvent(QMouseEvent *)
-{
-    // 点击鼠标时候判断是否在左侧的靶子范围内
-    if (ui->selectWindow->underMouse()) {
-        if (pTargetWindow == nullptr) {
-            pTargetWindow = new WindowSelector(this);
-            pTargetWindow->move(
-                QCursor::pos().x() - pTargetWindow->width() / 2,
-                QCursor::pos().y() - pTargetWindow->height() / 2);
-            pTargetWindow->show();
-        }
-    }
 }
 
 void DlgDllList::closeEvent(QCloseEvent *)
